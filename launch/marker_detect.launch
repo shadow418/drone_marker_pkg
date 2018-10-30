@@ -3,7 +3,7 @@
     <node pkg="usb_cam" name="usb_cam" type="usb_cam_node" output="screen">
     </node>
 
-    <node pkg="drone_marker_pkg" name="marker_detect_node" type="rosImage_to_cv2_to_rosImage_node.py" output="screen">
+    <node pkg="drone_marker_pkg" name="marker_detect_node" type="marker_detect_node.py" output="screen">
     </node>
 
     <node pkg="image_view" type="image_view" name="image_view" output="screen">
