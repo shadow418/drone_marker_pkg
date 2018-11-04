@@ -16,6 +16,7 @@ def callback(data):
     image_pub.publish(bridge.cv2_to_imgmsg(cv_image, "bgr8"))
 
 def featureMatching(original_image):
+    after_image = original_image
     gray_image = cv2.cvtColor(original_image, cv2.COLOR_RGB2GRAY)
 
     kp1, des1 = detector.detectAndCompute(gray_image, None)
@@ -26,12 +27,16 @@ def featureMatching(original_image):
 
     matches = bf.knnMatch(des1, des2, k=2)
     good = []
-    match_param = 0.6
     for m,n in matches:
-        if m.distance < match_param * n.distance:
+        if m.distance < 0.5 * n.distance:
             good.append([m])
 
-    after_image = cv2.drawMatchesKnn(original_image,kp1,temp_image,kp2,good, None,flags=2)
+    #特徴点のある点に赤丸を描く
+    for match_point in good:
+        point = kp1[match_point.trainIdx].pt
+        cv2.circle(after_image, (point.x, point.y), 5, (0,0,255), -1)
+
+    #after_image = cv2.drawMatchesKnn(original_image,kp1,temp_image,kp2,good, None,flags=2)
     return after_image
 
 def markerRecognition(original_image):
