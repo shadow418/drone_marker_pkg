@@ -16,28 +16,45 @@ def callback(data):
     image_pub.publish(bridge.cv2_to_imgmsg(cv_image, "bgr8"))
 
 def featureMatching(original_image):
-    after_image = original_image
-    gray_image = cv2.cvtColor(original_image, cv2.COLOR_RGB2GRAY)
-
-    kp1, des1 = detector.detectAndCompute(gray_image, None)
+    kp1, des1 = detector.detectAndCompute(original_image, None)
     kp2, des2 = detector.detectAndCompute(temp_image, None)
 
     if des1 is None or des2 is None:
         return original_image
 
     matches = bf.knnMatch(des1, des2, k=2)
+    #good_points = []
     good = []
     for m,n in matches:
-        if m.distance < 0.5 * n.distance:
-            good.append([m])
+        if m.distance < 0.7 * n.distance:
+            good.append(m)
+            #if(m.trainIdx < len(kp1)):
+            #    good_points.append(kp1[m.trainIdx].pt)
+
+    #if(len(good_points) == 0):
+    #    return original_image
 
     #特徴点のある点に赤丸を描く
-    for match_point in good:
-        point = kp1[match_point.trainIdx].pt
-        cv2.circle(after_image, (point.x, point.y), 5, (0,0,255), -1)
+    #x_sum = 0.0
+    #y_sum = 0.0
+    #points_sum = 0
+    #print points_sum
+    #for point in good_points:
+        #color = original_image[point[1],point[0]]
+        #green = original_image.item(point[1],point[0],1)
+        #print color
+        #if(green > 40):
+        #x_sum += point[0]
+        #y_sum += point[1]
+        #points_sum += 1
 
-    #after_image = cv2.drawMatchesKnn(original_image,kp1,temp_image,kp2,good, None,flags=2)
+    #if(points_sum != 0):
+        #after_image = cv2.circle(original_image, (int(x_sum/points_sum), int(y_sum/points_sum)), 5, (0,0,255), -1)
+        #return after_image
+
+    after_image = cv2.drawMatchesKnn(original_image,kp1,temp_image,kp2,matches,None,flags=2)
     return after_image
+    #return original_image
 
 def markerRecognition(original_image):
     after_image = original_image
@@ -83,7 +100,7 @@ if __name__ == '__main__':
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
     rospy.Subscriber("usb_cam/image_raw", Image, callback)
     bridge = CvBridge()
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/square.png",0) #第2引数が0でグレースケールで読み込むという意味
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker1.png") #第2引数が0でグレースケールで読み込むという意味
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING)
     rospy.spin()
