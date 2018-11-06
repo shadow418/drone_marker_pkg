@@ -30,17 +30,26 @@ def bf_match(original_image):
     points = []
     for match in matches[:10]:
         if match.trainIdx < len(kp1):
+<<<<<<< HEAD
             points.append(kp1[match.trainIdx].pt)
+=======
+            points.append(kp1[match.trainIdx].pt)     
+>>>>>>> 45d435e0646e48bc46c0b5ca86092187e132cfd2
 
     for point in points:
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (0,0,255), -1)
 
     upper_left, lower_right = find_end_point(points)
     if upper_left is not None and lower_right is not None:
+<<<<<<< HEAD
         after_image = cv2.rectangle(after_image, (int(upper_left[0]),int(upper_left[1])), (int(lower_right[0]),int(lower_right[1])), (255,0,0), 5)
         after_image = cv2.circle(after_image, (int(upper_left[0]), int(upper_left[1])), 10, (255,0,0), -1)
         after_image = cv2.circle(after_image, (int(lower_right[0]), int(lower_right[1])), 10, (255,0,0), -1)
     after_image = cv2.drawMatches(original_image, kp1, temp_image, kp2, matches[:10], None, flags=2)
+=======
+        after_image = cv2.rectangle(after_image, (int(upper_left[0]),int(upper_left[1])), (int(lower_right[0]),int(lower_right[1])), (255,0,0), 3)
+    #after_image = cv2.drawMatches(original_image, kp1, temp_image, kp2, matches[:10], None, flags=2)
+>>>>>>> 45d435e0646e48bc46c0b5ca86092187e132cfd2
     return after_image
 
 #マッチングした特徴点から左上と右下の点を見つける
@@ -66,7 +75,11 @@ if __name__ == '__main__':
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
     rospy.Subscriber("usb_cam/image_raw", Image, callback)
     bridge = CvBridge()
+<<<<<<< HEAD
     temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker_20.png",0) #第2引数が0でグレースケールで読み込むという意味
+=======
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker3_20.png",0) #第2引数が0でグレースケールで読み込むという意味
+>>>>>>> 45d435e0646e48bc46c0b5ca86092187e132cfd2
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
     rospy.spin()
