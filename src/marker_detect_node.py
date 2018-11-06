@@ -11,27 +11,80 @@ from cv_bridge import CvBridge, CvBridgeError
 
 def callback(data):
     cv_image = bridge.imgmsg_to_cv2(data, "bgr8")
-    #cv_image = markerRecognition(cv_image)
-    cv_image = featureMatching(cv_image)
+    cv_image = bf_match(cv_image)
     image_pub.publish(bridge.cv2_to_imgmsg(cv_image, "bgr8"))
 
-def featureMatching(original_image):
-    gray_image = cv2.cvtColor(original_image, cv2.COLOR_RGB2GRAY)
+def bf_match(original_image):
+    after_image = original_image
 
+    gray_image = cv2.cvtColor(after_image, cv2.COLOR_RGB2GRAY)
     kp1, des1 = detector.detectAndCompute(gray_image, None)
+    kp2, des2 = detector.detectAndCompute(temp_image, None)
+
+    if des1 is None or des2 is None:
+        return after_image
+
+    matches = bf.match(des1,des2)
+    matches = sorted(matches, key = lambda x:x.distance)
+    
+    points = []
+    for match in matches[:10]:
+        if match.trainIdx < len(kp1):
+            points.append(kp1[match.trainIdx].pt)     
+
+    for point in points:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (0,0,255), -1)
+
+    upper_left, lower_right = find_end_point(points)
+    if upper_left is not None and lower_right is not None:
+        after_image = cv2.rectangle(after_image, (int(upper_left[0]),int(upper_left[1])), (int(lower_right[0]),int(lower_right[1])), (255,0,0), 3)
+    #after_image = cv2.drawMatches(original_image, kp1, temp_image, kp2, matches[:10], None, flags=2)
+    return after_image
+
+#マッチングした特徴点から左上と右下の点を見つける
+def find_end_point(points):
+    upper_left = None
+    lower_right = None
+    for point in points:
+        if upper_left is None:
+            upper_left = point
+        else:
+            if point[0] < upper_left[0] and point[1] < upper_left[1]:
+                upper_left = point
+
+        if lower_right is None:
+            lower_right = point
+        else:
+            if point[0] > lower_right[0] and point[1] > lower_right[1]:
+                lower_right = point
+    return upper_left,lower_right
+
+if __name__ == '__main__':
+    rospy.init_node('marker_detect_node', anonymous=True)
+    image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
+    rospy.Subscriber("usb_cam/image_raw", Image, callback)
+    bridge = CvBridge()
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker3_20.png",0) #第2引数が0でグレースケールで読み込むという意味
+    detector = cv2.AKAZE_create()
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    rospy.spin()
+
+"""
+def featureMatching(original_image):
+    kp1, des1 = detector.detectAndCompute(original_image, None)
     kp2, des2 = detector.detectAndCompute(temp_image, None)
 
     if des1 is None or des2 is None:
         return original_image
 
     matches = bf.knnMatch(des1, des2, k=2)
-    #good_points = []
+    good_points = []
     good = []
     for m,n in matches:
         if m.distance < 0.7 * n.distance:
             good.append(m)
-            #if(m.trainIdx < len(kp1)):
-            #    good_points.append(kp1[m.trainIdx].pt)
+            if(m.trainIdx < len(kp1)):
+                good_points.append(kp1[m.trainIdx].pt)
 
     #if(len(good_points) == 0):
     #    return original_image
@@ -40,22 +93,26 @@ def featureMatching(original_image):
     #x_sum = 0.0
     #y_sum = 0.0
     #points_sum = 0
-    #for point in good_points:
+    for point in good_points:
         #color = original_image[point[1],point[0]]
         #green = original_image.item(point[1],point[0],1)
         #if(green > 40):
         #x_sum += point[0]
         #y_sum += point[1]
         #points_sum += 1
+        after_image = cv2.circle(original_image, (int(point[0]), int(point[1])), 5, (0,0,255), -1)
+    return after_image
 
     #if(points_sum != 0):
-        #after_image = cv2.circle(original_image, (int(x_sum/points_sum), int(y_sum/points_sum)), 5, (0,0,255), -1)
-        #return after_image
+    #    after_image = cv2.circle(original_image, (int(x_sum/points_sum), int(y_sum/points_sum)), 5, (0,0,255), -1)
+    #    return after_image
 
-    after_image = cv2.drawMatchesKnn(original_image, kp1, temp_image, kp2, good, None, flags=2)
-    return after_image
+    #after_image = cv2.drawMatchesKnn(original_image, kp1, temp_image, kp2, good, None, flags=2)
+    #return after_image
     #return original_image
+"""
 
+"""
 def markerRecognition(original_image):
     after_image = original_image
 
@@ -94,13 +151,4 @@ def markerRecognition(original_image):
             #cv2.drawContours(after_image, approx, -1, (0,0,255), 3)
 
     return after_image
-    
-if __name__ == '__main__':
-    rospy.init_node('marker_detect_node', anonymous=True)
-    image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
-    rospy.Subscriber("usb_cam/image_raw", Image, callback)
-    bridge = CvBridge()
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker1.png",0) #第2引数が0でグレースケールで読み込むという意味
-    detector = cv2.AKAZE_create()
-    bf = cv2.BFMatcher(cv2.NORM_HAMMING)
-    rospy.spin()
+"""
