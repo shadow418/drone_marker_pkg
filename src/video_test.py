@@ -56,10 +56,14 @@ def bf_match(original_image):
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,0,0), -1)
 
     #各象限の特徴点から代表点を見つける
-    upper_right = find_upper_right(first)
-    upper_left = find_upper_left(second)
-    lower_left = find_lower_left(third)
-    lower_right = find_lower_right(forth)
+    #upper_right = find_upper_right(first)
+    #upper_left = find_upper_left(second)
+    #lower_left = find_lower_left(third)
+    #lower_right = find_lower_right(forth)
+    upper_right = calc_center(first)
+    upper_left = calc_center(second)
+    lower_left = calc_center(third)
+    lower_right = calc_center(forth)
 
     #代表点があればその点に沿って線を描画
     if upper_right is not None and upper_left is not None and lower_left is not None and lower_right is not None:
@@ -69,10 +73,22 @@ def bf_match(original_image):
         cv2.line(after_image, (lower_right[0], lower_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 10)
 
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示
-    after_image = cv2.drawMatches(original_image, kp1, temp_image, kp2, matches[:10], None, flags=2)
+    after_image = cv2.drawMatches(after_image, kp1, temp_image, kp2, matches[:10], None, flags=2)
 
     return after_image
 
+#pointsの重心を出す
+def calc_center(points):
+    if len(points) == 0:
+        return None
+    x = 0
+    y = 0
+    for point in points:
+        x += point[0]
+        y += point[1]
+    center = [x/len(points), y/len(points)]
+    return center
+    
 def find_upper_right(points):
     upper_right = None
     for point in points:
@@ -118,7 +134,7 @@ if __name__ == '__main__':
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
     bridge = CvBridge()
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/1.mp4")
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/2.mp4")
     temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_50.jpg",0) #第2引数が0でグレースケールで読み込むという意味
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
 
