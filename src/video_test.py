@@ -16,7 +16,7 @@ def bf_match(original_image):
 
     #特徴点抽出
     kp1, des1 = detector.detectAndCompute(gray_image, None)
-    kp2, des2 = detector.detectAndCompute(temp_image, None)
+    kp2, des2 = detector.detectAndCompute(temp_gray_image, None)
 
     if des1 is None or des2 is None:
         return after_image
@@ -36,6 +36,15 @@ def bf_match(original_image):
     third = []
     forth = []
     for input_image_point, temp_image_point in zip(input_image_pts, temp_image_pts):
+        #2点の色を比較して誤認識を排除
+        input_image_color = after_image[input_image_point[1], input_image_point[0]]
+        temp_image_color = temp_image[temp_image_point[1], temp_image_point[0]]
+        color_sub = input_image_color - temp_image_color
+        color_sub = color_sub.astype(np.int8)
+        if np.linalg.norm(color_sub)/442 > 0.2: #黒と白のユークリッド距離が441.6
+            continue
+
+        #マッチングした点を象限で区別
         if temp_image_point[0] > temp_center[0] and temp_image_point[1] < temp_center[1]:
             first.append(input_image_point)
         if temp_image_point[0] < temp_center[0] and temp_image_point[1] < temp_center[1]:
@@ -134,8 +143,9 @@ if __name__ == '__main__':
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
     bridge = CvBridge()
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/2.mp4")
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_50.jpg",0) #第2引数が0でグレースケールで読み込むという意味
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/1.mp4")
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
+    temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
 
     detector = cv2.AKAZE_create()
