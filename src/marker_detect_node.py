@@ -102,16 +102,15 @@ def calc_center(points):
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
-    rospy.Subscriber("bebop2/image_raw", Image, callback)
+    
     bridge = CvBridge()
-
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker_20.png") #第2引数が0でグレースケールで読み込むという意味
+    temp_image = cv2.imread(os.environ["HOME"]+"/bebop_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
-
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-
+    
+    rospy.Subscriber("bebop/image_raw", Image, callback)
     rospy.spin()
 
 """
