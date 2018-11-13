@@ -7,7 +7,12 @@ import cv2
 import numpy as np
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
+from nav_msgs.msg import Odometry
 from cv_bridge import CvBridge, CvBridgeError
+
+def odom_callback(data):
+    global drone_height
+    drone_height = data.pose.pose.position.z
 
 def callback(data):
     cv_image = bridge.imgmsg_to_cv2(data, "bgr8")
@@ -84,6 +89,7 @@ def bf_match(original_image):
 
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示
     after_image = cv2.drawMatches(after_image, kp1, temp_image, kp2, matches[:10], None, flags=2)
+    cv2.putText(after_image, "Drone Height = "+str(drone_height), (50, 1050), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0),thickness=3)
 
     return after_image
 
@@ -109,7 +115,9 @@ if __name__ == '__main__':
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    drone_height = 0.0
     
+    rospy.Subscriber("bebop/odom", Odometry, odom_callback)
     rospy.Subscriber("bebop/image_raw", Image, callback)
     rospy.spin()
 
