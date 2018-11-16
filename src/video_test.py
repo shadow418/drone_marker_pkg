@@ -26,10 +26,15 @@ def bf_match(original_image):
     matches = bf.match(des1,des2)
     matches = sorted(matches, key = lambda x:x.distance)
 
-    #マッチングした特徴点の座標を記録
-    input_image_pts = [list(map(int, kp1[m.queryIdx].pt)) for m in matches[:10]]
-    temp_image_pts = [list(map(int, kp2[m.trainIdx].pt)) for m in matches[:10]]
-    #print "%d %d" % (len(input_image_pts),len(temp_image_pts))
+    #信頼性の高いマッチング結果のみから特徴点の座標を記録
+    good_matches = []
+    input_image_pts = []
+    temp_image_pts = []
+    for m in matches:
+        if m.distance < 100.0: #信頼性が高いかのチェック
+            good_matches.append(m)
+            input_image_pts.append(map(int, kp1[m.queryIdx].pt))
+            temp_image_pts.append(map(int, kp2[m.trainIdx].pt))
 
     #マッチングした特徴点がテンプレート画像での第何象限にあるかを記録
     first = []
@@ -42,7 +47,7 @@ def bf_match(original_image):
         temp_image_color = temp_image[temp_image_point[1], temp_image_point[0]]
         color_sub = input_image_color - temp_image_color
         color_sub = color_sub.astype(np.int8)
-        if np.linalg.norm(color_sub)/442 > 0.2: #黒と白のユークリッド距離が441.6
+        if np.linalg.norm(color_sub)/442 > 0.1: #黒と白のユークリッド距離が441.6
             continue
 
         #マッチングした点を象限で区別
@@ -57,19 +62,15 @@ def bf_match(original_image):
 
     #象限によって色を分けて特徴点を表示
     for point in first:
-        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (255,0,0), -1)
-    for point in second:
-        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,255,0), -1)
-    for point in third:
-        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,0,255), -1)
-    for point in forth:
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,0,0), -1)
+    for point in second:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,0,255), -1)
+    for point in third:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,255,0), -1)
+    for point in forth:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (255,0,0), -1)
 
     #各象限の特徴点から代表点を見つける
-    #upper_right = find_upper_right(first)
-    #upper_left = find_upper_left(second)
-    #lower_left = find_lower_left(third)
-    #lower_right = find_lower_right(forth)
     upper_right = calc_center(first)
     upper_left = calc_center(second)
     lower_left = calc_center(third)
@@ -83,7 +84,7 @@ def bf_match(original_image):
         cv2.line(after_image, (lower_right[0], lower_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 10)
 
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示
-    after_image = cv2.drawMatches(after_image, kp1, temp_image, kp2, matches[:10], None, flags=2)
+    after_image = cv2.drawMatches(after_image, kp1, temp_image, kp2, good_matches, None, flags=2)
     cv2.putText(after_image, "Drone Height = "+str(drone_height), (50, 1050), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0),thickness=3)
 
     return after_image
@@ -145,8 +146,8 @@ if __name__ == '__main__':
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
     bridge = CvBridge()
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/1.mp4")
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/color2.mp4")
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp_color50.jpg") #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
     drone_height = 0.0

@@ -7,7 +7,7 @@ import numpy as np
 
 if __name__ == '__main__':
     detector = cv2.AKAZE_create()
-    
+    """
     temp_image = cv2.imread("../resource/temp_color50.jpg")
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
 
@@ -24,11 +24,11 @@ if __name__ == '__main__':
         cv2.imshow("test",result)
         cv2.imshow("test2",result2)
         cv2.waitKey(1)
+    """
     
 
-
-    """
-    cap = cv2.VideoCapture("../resource/video/color1.mp4")
+    
+    cap = cv2.VideoCapture("../resource/video/color2.mp4")
     cv2.namedWindow("test", cv2.WINDOW_NORMAL)
     while(cap.isOpened()):
         ret, frame = cap.read()
@@ -37,4 +37,4 @@ if __name__ == '__main__':
         result = cv2.drawKeypoints(gray_image, kp1, None)
         cv2.imshow("test",result)
         cv2.waitKey(1)
-    """
+    

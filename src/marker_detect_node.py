@@ -36,9 +36,14 @@ def bf_match(original_image):
     matches = sorted(matches, key = lambda x:x.distance)
 
     #マッチングした特徴点の座標を記録
-    input_image_pts = [list(map(int, kp1[m.queryIdx].pt)) for m in matches[:10]]
-    temp_image_pts = [list(map(int, kp2[m.trainIdx].pt)) for m in matches[:10]]
-    #print "%d %d" % (len(input_image_pts),len(temp_image_pts))
+    good_matches = []
+    input_image_pts = []
+    temp_image_pts = []
+    for m in matches:
+        if m.distance < 100.0: #信頼性が高いかのチェック
+            good_matches.append(m)
+            input_image_pts.append(map(int, kp1[m.queryIdx].pt))
+            temp_image_pts.append(map(int, kp2[m.trainIdx].pt))
 
     #マッチングした特徴点がテンプレート画像での第何象限にあるかを記録
     first = []
@@ -51,7 +56,7 @@ def bf_match(original_image):
         temp_image_color = temp_image[temp_image_point[1], temp_image_point[0]]
         color_sub = input_image_color - temp_image_color
         color_sub = color_sub.astype(np.int8)
-        if np.linalg.norm(color_sub)/442 > 0.2: #黒と白のユークリッド距離が441.6
+        if np.linalg.norm(color_sub)/442 > 0.1: #黒と白のユークリッド距離が441.6
             continue
 
         #マッチングした点を象限で区別
@@ -66,13 +71,13 @@ def bf_match(original_image):
 
     #象限によって色を分けて特徴点を表示
     for point in first:
-        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (255,0,0), -1)
-    for point in second:
-        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,255,0), -1)
-    for point in third:
-        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,0,255), -1)
-    for point in forth:
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,0,0), -1)
+    for point in second:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,0,255), -1)
+    for point in third:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (0,255,0), -1)
+    for point in forth:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 10, (255,0,0), -1)
 
     #各象限の特徴点から代表点を見つける
     upper_right = calc_center(first)
@@ -88,7 +93,7 @@ def bf_match(original_image):
         cv2.line(after_image, (lower_right[0], lower_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 10)
 
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示
-    after_image = cv2.drawMatches(after_image, kp1, temp_image, kp2, matches[:10], None, flags=2)
+    after_image = cv2.drawMatches(after_image, kp1, temp_image, kp2, good_matches, None, flags=2)
     cv2.putText(after_image, "Drone Height = "+str(drone_height), (50, 1050), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0),thickness=3)
 
     return after_image
