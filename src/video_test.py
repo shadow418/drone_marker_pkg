@@ -6,6 +6,7 @@ import rospy
 import cv2
 import numpy as np
 from std_msgs.msg import String
+from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
 from cv_bridge import CvBridge, CvBridgeError
@@ -83,6 +84,10 @@ def bf_match(original_image):
         cv2.line(after_image, (lower_left[0], lower_left[1]), (lower_right[0], lower_right[1]), (255,0,0), 10)
         cv2.line(after_image, (lower_right[0], lower_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 10)
 
+        points = Float32MultiArray()
+        points.data = [upper_right[0], upper_right[1], upper_left[0], upper_left[1], lower_left[0], lower_left[1], lower_right[0], lower_right[1]]
+        points_pub.publish(points)
+
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示
     after_image = cv2.drawMatches(after_image, kp1, temp_image, kp2, good_matches, None, flags=2)
     cv2.putText(after_image, "Drone Height = "+str(drone_height), (50, 1050), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0),thickness=3)
@@ -100,54 +105,15 @@ def calc_center(points):
         y += point[1]
     center = [x/len(points), y/len(points)]
     return center
-    
-def find_upper_right(points):
-    upper_right = None
-    for point in points:
-        if upper_right is None:
-            upper_right = point
-        else:
-            if point[0] > upper_right[0] and point[1] < upper_right[1]:
-                upper_right = point
-    return upper_right
-
-def find_upper_left(points):
-    upper_left = None
-    for point in points:
-        if upper_left is None:
-            upper_left = point
-        else:
-            if point[0] < upper_left[0] and point[1] < upper_left[1]:
-                upper_left = point
-    return upper_left
-
-def find_lower_left(points):
-    lower_left = None
-    for point in points:
-        if lower_left is None:
-            lower_left = point
-        else:
-            if point[0] < lower_left[0] and point[1] > lower_left[1]:
-                lower_left = point
-    return lower_left
-
-def find_lower_right(points):
-    lower_right = None
-    for point in points:
-        if lower_right is None:
-            lower_right = point
-        else:
-            if point[0] > lower_right[0] and point[1] > lower_right[1]:
-                lower_right = point
-    return lower_right
 
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
+    points_pub = rospy.Publisher("marker_detect/points", Float32MultiArray, queue_size=1)
     bridge = CvBridge()
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/color2.mp4")
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp_color50.jpg") #第2引数が0でグレースケールで読み込むという意味
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/2.mp4")
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
     drone_height = 0.0

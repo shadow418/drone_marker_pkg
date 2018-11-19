@@ -6,6 +6,7 @@ import rospy
 import cv2
 import numpy as np
 from std_msgs.msg import String
+from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
 from cv_bridge import CvBridge, CvBridgeError
@@ -92,6 +93,10 @@ def bf_match(original_image):
         cv2.line(after_image, (lower_left[0], lower_left[1]), (lower_right[0], lower_right[1]), (255,0,0), 10)
         cv2.line(after_image, (lower_right[0], lower_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 10)
 
+        points = Float32MultiArray()
+        points.data = [upper_right[0], upper_right[1], upper_left[0], upper_left[1], lower_left[0], lower_left[1], lower_right[0], lower_right[1]]
+        points_pub.publish(points)
+
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示
     after_image = cv2.drawMatches(after_image, kp1, temp_image, kp2, good_matches, None, flags=2)
     cv2.putText(after_image, "Drone Height = "+str(drone_height), (50, 1050), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0),thickness=3)
@@ -113,6 +118,7 @@ def calc_center(points):
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
+    points_pub = rospy.Publisher("marker_detect/points", Float32MultiArray, queue_size=1)
     
     bridge = CvBridge()
     temp_image = cv2.imread(os.environ["HOME"]+"/bebop_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
