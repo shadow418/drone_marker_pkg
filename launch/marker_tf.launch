@@ -1,9 +1,11 @@
 <?xml version="1.0"?>
 <launch>
-    <node pkg="tf" type="static_transform_publisher" name="marker_pos1" args="1 1 0 0 0 0 map marker1 10"></node>
+    <node pkg="tf" type="static_transform_publisher" name="marker_pos1" args="0 0 0 0 0 0 map marker1 10"></node>
     <node pkg="tf" type="static_transform_publisher" name="marker_pos2" args="2 0 0 0 0 0 marker1 marker2 10"></node>
     <node pkg="tf" type="static_transform_publisher" name="marker_pos3" args="0 2 0 0 0 0 marker1 marker3 10"></node>
     <node pkg="tf" type="static_transform_publisher" name="marker_pos4" args="2 2 0 0 0 0 marker1 marker4 10"></node>
+
+    <node pkg="drone_marker_pkg" type="calc_pose_node.py" name="calc_pose_node" output="screen"></node>
 
     <node pkg="rviz" type="rviz" name="rviz"></node>
 </launch>
