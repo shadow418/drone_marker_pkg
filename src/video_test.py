@@ -106,14 +106,26 @@ def calc_center(points):
     center = [x/len(points), y/len(points)]
     return center
 
+def tempmatch(original_image):
+    after_image = original_image
+
+    gray_image = cv2.cvtColor(after_image, cv2.COLOR_RGB2GRAY)
+
+    result = cv2.matchTemplate(gray_image, temp_gray_image, cv2.TM_CCOEFF_NORMED)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+    top_left = max_loc
+    bottom_right = (top_left[0] + temp_image.shape[1], top_left[1] + temp_image.shape[0])
+    cv2.rectangle(after_image,top_left, bottom_right, 255, 2)
+    return after_image
+
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
     points_pub = rospy.Publisher("marker_detect/points", Float32MultiArray, queue_size=1)
     bridge = CvBridge()
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/2.mp4")
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/1.mp4")
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_cut.jpg") #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
     drone_height = 0.0
@@ -123,5 +135,6 @@ if __name__ == '__main__':
     
     while(cap.isOpened()):
         ret, frame = cap.read()
-        after_image = bf_match(frame)
+        #after_image = bf_match(frame)
+        after_image = tempmatch(frame)
         image_pub.publish(bridge.cv2_to_imgmsg(after_image, "bgr8"))
