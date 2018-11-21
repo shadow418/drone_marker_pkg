@@ -107,15 +107,23 @@ def calc_center(points):
     return center
 
 def tempmatch(original_image):
+    methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
+
     after_image = original_image
 
     gray_image = cv2.cvtColor(after_image, cv2.COLOR_RGB2GRAY)
 
-    result = cv2.matchTemplate(gray_image, temp_gray_image, cv2.TM_CCOEFF_NORMED)
-    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-    top_left = max_loc
-    bottom_right = (top_left[0] + temp_image.shape[1], top_left[1] + temp_image.shape[0])
-    cv2.rectangle(after_image,top_left, bottom_right, 255, 2)
+    for method in methods:
+        method = eval(method)
+        result = cv2.matchTemplate(gray_image, temp_gray_image, method)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+            top_left = min_loc
+        else:
+            top_left = max_loc
+        bottom_right = (top_left[0] + temp_image.shape[1], top_left[1] + temp_image.shape[0])
+        cv2.rectangle(after_image, top_left, bottom_right, (255,0,0), 2)
+
     return after_image
 
 if __name__ == '__main__':
