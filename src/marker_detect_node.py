@@ -25,12 +25,14 @@ def tempmatch(original_image):
     methods = ['cv2.TM_CCOEFF_NORMED']
 
     after_image = original_image
-
     gray_image = cv2.cvtColor(after_image, cv2.COLOR_RGB2GRAY)
+
+    temp_size = 20.8 * drone_height #1.8m四方のマーカを高さ10mから観測した際のピクセル数である208を基準に計算
+    temp_resize_image = cv2.resize(temp_gray_image,(temp_size, temp_size))
 
     for method in methods:
         method = eval(method)
-        result = cv2.matchTemplate(gray_image, temp_gray_image, method)
+        result = cv2.matchTemplate(gray_image, temp_resize_image, method)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
         if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
             top_left = min_loc
@@ -50,16 +52,17 @@ if __name__ == '__main__':
     temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker_temp20.jpg")
     #temp_image = cv2.imread(os.environ["HOME"]+"/bebop_ws/src/drone_marker_pkg/resource/marker_temp20.jpg")
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
-    temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
-    drone_height = 0.0
     
+    drone_height = 0.0
     rospy.Subscriber("bebop/odom", Odometry, odom_callback)
+
     rospy.Subscriber("bebop/image_raw", Image, callback)
     rospy.Subscriber("usb_cam/image_raw", Image, callback)
     rospy.spin()
 
 """
 def bf_match(original_image):
+    temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
     after_image = original_image
