@@ -17,7 +17,8 @@ def odom_callback(data):
 
 def callback(data):
     cv_image = bridge.imgmsg_to_cv2(data, "bgr8")
-    cv_image = bf_match(cv_image)
+    #cv_image = bf_match(cv_image)
+    cv_image = tempmatch(cv_image)
     image_pub.publish(bridge.cv2_to_imgmsg(cv_image, "bgr8"))
 
 def bf_match(original_image):
@@ -115,13 +116,33 @@ def calc_center(points):
     center = [x/len(points), y/len(points)]
     return center
 
+def tempmatch(original_image):
+    methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
+
+    after_image = original_image
+
+    gray_image = cv2.cvtColor(after_image, cv2.COLOR_RGB2GRAY)
+
+    for method in methods:
+        method = eval(method)
+        result = cv2.matchTemplate(gray_image, temp_gray_image, method)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+            top_left = min_loc
+        else:
+            top_left = max_loc
+        bottom_right = (top_left[0] + temp_image.shape[1], top_left[1] + temp_image.shape[0])
+        cv2.rectangle(after_image, top_left, bottom_right, (255,0,0), 2)
+
+    return after_image
+
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
     points_pub = rospy.Publisher("marker_detect/points", Float32MultiArray, queue_size=1)
     
     bridge = CvBridge()
-    temp_image = cv2.imread(os.environ["HOME"]+"/bebop_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker_temp20.jpg") #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
     detector = cv2.AKAZE_create()
@@ -130,6 +151,7 @@ if __name__ == '__main__':
     
     rospy.Subscriber("bebop/odom", Odometry, odom_callback)
     rospy.Subscriber("bebop/image_raw", Image, callback)
+    rospy.Subscriber("usb_cam/image_raw", Image, callback)
     rospy.spin()
 
 """
