@@ -126,13 +126,46 @@ def tempmatch(original_image):
 
     return after_image
 
+def labeling(image):
+    gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    binary_image = cv2.threshold(gray_image, 200, 255, cv2.THRESH_BINARY)[1]
+
+    """
+    contours= cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        if area < 100:
+            continue
+        #輪郭を直線近似
+        arclen = cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, 0.005 * arclen, True)
+        cv2.drawContours(image, approx, -1, (0,255,0), 5)
+    """
+
+    label = cv2.connectedComponentsWithStats(binary_image)
+    n = label[0] - 1
+    data = np.delete(label[2], 0, 0)
+    center = np.delete(label[3], 0, 0)
+    for i in range(n):
+        # 各オブジェクトの外接矩形を赤枠で表示
+        if data[i][4] < 100:
+            continue
+        x0 = data[i][0]
+        y0 = data[i][1]
+        x1 = data[i][0] + data[i][2]
+        y1 = data[i][1] + data[i][3]
+        #cv2.rectangle(image, (x0, y0), (x1, y1), (0, 0, 255), 2)
+        cv2.circle(image, (int(center[i][0]), int(center[i][1])), 3, (0,0,255), -1)
+
+    return image
+
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
     points_pub = rospy.Publisher("marker_detect/points", Float32MultiArray, queue_size=1)
     bridge = CvBridge()
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/1.mp4")
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/drone_video.mp4")
     temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_cut.jpg") #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
@@ -144,5 +177,6 @@ if __name__ == '__main__':
     while(cap.isOpened()):
         ret, frame = cap.read()
         #after_image = bf_match(frame)
-        after_image = tempmatch(frame)
+        #after_image = tempmatch(frame)
+        after_image = labeling(frame)
         image_pub.publish(bridge.cv2_to_imgmsg(after_image, "bgr8"))
