@@ -8,26 +8,31 @@ import numpy as np
 if __name__ == '__main__':
     detector = cv2.AKAZE_create()
     
-    temp_image = cv2.imread("../resource/en.jpg")
-    temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
+    temp_image = cv2.imread("../resource/en.jpg",0)
+    edges = cv2.Canny(temp_image,100,200)
 
-    temp_image2 = cv2.imread("../resource/1.png")
-    temp_gray_image2 = cv2.cvtColor(temp_image2, cv2.COLOR_RGB2GRAY)
+    temp_image2 = cv2.imread("../resource/1.png",0)
+    edges2 = cv2.Canny(temp_image2,100,200)
 
-    temp_image3 = cv2.imread("../resource/2.png")
-    temp_gray_image3 = cv2.cvtColor(temp_image3, cv2.COLOR_RGB2GRAY)
+    temp_image3 = cv2.imread("../resource/2.png",0)
+    edges3 = cv2.Canny(temp_image3,100,200)
 
-    ret = cv2.matchShapes(temp_gray_image, temp_gray_image2, 1, 0)
-    ret2 = cv2.matchShapes(temp_gray_image, temp_gray_image3, 1, 0)
+    temp_image4 = cv2.imread("../resource/3.png",0)
+    edges4 = cv2.Canny(temp_image4,100,200)
+
+    ret = cv2.matchShapes(edges, edges2, 1, 0)
+    ret2 = cv2.matchShapes(edges, edges3, 1, 0)
+    ret3 = cv2.matchShapes(edges, edges4, 1, 0)
 
     print ret
     print ret2
+    print ret3
 
-    while(1):
-        cv2.imshow("1", temp_gray_image)
-        cv2.imshow("2", temp_gray_image2)
-        cv2.imshow("3", temp_gray_image3)
-        cv2.waitKey(1)
+    cv2.imshow("1", edges)
+    cv2.imshow("2", edges2)
+    cv2.imshow("3", edges3)
+    cv2.imshow("4", edges4)
+    cv2.waitKey(0)
 
     #kp1 = detector.detect(temp_gray_image)
     #kp2 = detector.detect(temp_gray_image2)
