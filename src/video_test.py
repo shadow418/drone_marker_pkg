@@ -145,27 +145,25 @@ def labeling(image):
         y1 = data[i][1] + data[i][3]
    
         cut_image = gray_image[y0-5:y1+5, x0-5:x1+5] #マーカ構成要素部分を切り出し
-        ret = cv2.matchShapes(cut_image, temp_image, 1, 0)
-        print ret
-
-        if ret < 0.005:
-            cv2.rectangle(image, (x0, y0), (x1, y1), (255, 0, 0), 2)
-            cv2.circle(image, (int(center[i][0]), int(center[i][1])), 3, (255,0,0), -1)
-        else:
-            cv2.rectangle(image, (x0, y0), (x1, y1), (0, 0, 255), 2)
-            cv2.circle(image, (int(center[i][0]), int(center[i][1])), 3, (0,0,255), -1)
-
-        """
-        contours= cv2.findContours(cut_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
+        edges = cv2.Canny(cut_image,100,200)
+        contours= cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
         for contour in contours:
             #輪郭を直線近似
             arclen = cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, 0.005 * arclen, True)
-            cv2.drawContours(cut_image, approx, -1, (0,255,0), 5)
+            approx = cv2.approxPolyDP(contour, 0.1 * arclen, True)
+            #cv2.drawContours(cut_image, approx, -1, (0,255,0), 3)
+            if len(approx) <= 3:
+                cv2.rectangle(image, (x0, y0), (x1, y1), (0, 0, 255), 2)
+                cv2.circle(image, (int(center[i][0]), int(center[i][1])), 3, (0,0,255), -1)
+            elif len(approx) == 4:
+                cv2.rectangle(image, (x0, y0), (x1, y1), (0, 255, 0), 2)
+                cv2.circle(image, (int(center[i][0]), int(center[i][1])), 3, (0,255,0), -1)
+            elif len(approx) >= 5:
+                cv2.rectangle(image, (x0, y0), (x1, y1), (255, 0, 0), 2)
+                cv2.circle(image, (int(center[i][0]), int(center[i][1])), 3, (255,0,0), -1)
         
-        cv2.imshow(str(i),cut_image)
-        cv2.waitKey(1)
-        """
+        #cv2.imshow(str(i),cut_image)
+        #cv2.waitKey(1)
 
     return image
 
@@ -176,7 +174,7 @@ if __name__ == '__main__':
     bridge = CvBridge()
 
     cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/drone_video.mp4")
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/en.jpg",0) #第2引数が0でグレースケールで読み込むという意味
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/en.jpg") #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
     drone_height = 0.0
