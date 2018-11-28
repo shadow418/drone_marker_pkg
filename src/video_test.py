@@ -136,19 +136,25 @@ def labeling(image):
     center = np.delete(label[3], 0, 0)
 
     for i in range(n):
-        # 各オブジェクトの外接矩形を赤枠で表示
+        # 各オブジェクトの外接矩形を表示
         if data[i][4] < 100:
             continue
         x0 = data[i][0]
         y0 = data[i][1]
         x1 = data[i][0] + data[i][2]
         y1 = data[i][1] + data[i][3]
-
-        cv2.rectangle(image, (x0, y0), (x1, y1), (0, 0, 255), 2)
-        cv2.circle(image, (int(center[i][0]), int(center[i][1])), 3, (0,0,255), -1)
-
+   
         cut_image = gray_image[y0-5:y1+5, x0-5:x1+5] #マーカ構成要素部分を切り出し
-        
+        ret = cv2.matchShapes(cut_image, temp_image, 1, 0)
+        print ret
+
+        if ret < 0.005:
+            cv2.rectangle(image, (x0, y0), (x1, y1), (255, 0, 0), 2)
+            cv2.circle(image, (int(center[i][0]), int(center[i][1])), 3, (255,0,0), -1)
+        else:
+            cv2.rectangle(image, (x0, y0), (x1, y1), (0, 0, 255), 2)
+            cv2.circle(image, (int(center[i][0]), int(center[i][1])), 3, (0,0,255), -1)
+
         """
         contours= cv2.findContours(cut_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
         for contour in contours:
@@ -156,10 +162,10 @@ def labeling(image):
             arclen = cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, 0.005 * arclen, True)
             cv2.drawContours(cut_image, approx, -1, (0,255,0), 5)
-        """
+        
         cv2.imshow(str(i),cut_image)
         cv2.waitKey(1)
-        
+        """
 
     return image
 
@@ -169,8 +175,8 @@ if __name__ == '__main__':
     points_pub = rospy.Publisher("marker_detect/points", Float32MultiArray, queue_size=1)
     bridge = CvBridge()
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/1.mp4")
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_cut.jpg") #第2引数が0でグレースケールで読み込むという意味
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/drone_video.mp4")
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/en.jpg",0) #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
     drone_height = 0.0
