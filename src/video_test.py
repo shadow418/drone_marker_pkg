@@ -170,6 +170,36 @@ def labeling(image):
     return image
 """
 
+def color_labeling(image):
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    lower_g = np.array([60, 50, 50])
+    upper_g = np.array([95, 255, 255])
+    lower_r = np.array([160, 50, 50])
+    upper_r = np.array([180, 255, 255])
+    lower_b = np.array([98, 50, 230])
+    upper_b = np.array([100, 255, 255])
+    lower_black = np.array([100, 50, 50])
+    upper_black = np.array([130, 255, 120])
+
+    img_mask = cv2.inRange(hsv, lower_g, upper_g)
+
+    contours= cv2.findContours(img_mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
+    areas = np.array(list(map(cv2.contourArea, contours)))
+
+    if len(areas) == 0:
+        return image
+
+    max_idx = np.argmax(areas)
+    max_area = areas[max_idx]
+    result = cv2.moments(contours[max_idx])
+    x = int(result["m10"]/result["m00"])
+    y = int(result["m01"]/result["m00"])
+
+    cv2.circle(image, (x, y), 5, (255,0,0), -1)
+
+    return image
+
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
     image_pub = rospy.Publisher("marker_detect/image_raw", Image, queue_size=1)
@@ -179,7 +209,7 @@ if __name__ == '__main__':
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/drone_video.mp4")
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/1.mp4")
 
     temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
