@@ -17,14 +17,13 @@ def bf_match(original_image):
     gray_image = cv2.cvtColor(after_image, cv2.COLOR_RGB2GRAY)
 
     #特徴点抽出
-    kp1, des1 = detector.detectAndCompute(gray_image, None)
-    kp2, des2 = detector.detectAndCompute(temp_gray_image, None)
-
-    if des1 is None or des2 is None:
+    kp_input, des_input = detector.detectAndCompute(gray_image, None)
+    
+    if des_input is None or des_temp is None:
         return after_image
 
     #マッチング
-    matches = bf.match(des1,des2)
+    matches = bf.match(des_input,des_temp)
     matches = sorted(matches, key = lambda x:x.distance)
 
     #信頼性の高いマッチング結果のみから特徴点の座標を記録
@@ -32,10 +31,10 @@ def bf_match(original_image):
     input_image_pts = []
     temp_image_pts = []
     for m in matches:
-        if m.distance < 100.0: #信頼性が高いかのチェック
+        if m.distance < 50.0: #信頼性が高いかのチェック
             good_matches.append(m)
-            input_image_pts.append(map(int, kp1[m.queryIdx].pt))
-            temp_image_pts.append(map(int, kp2[m.trainIdx].pt))
+            input_image_pts.append(map(int, kp_input[m.queryIdx].pt))
+            temp_image_pts.append(map(int, kp_temp[m.trainIdx].pt))
 
     #マッチングした特徴点がテンプレート画像での第何象限にあるかを記録
     first = []
@@ -48,7 +47,7 @@ def bf_match(original_image):
         temp_image_color = temp_image[temp_image_point[1], temp_image_point[0]]
         color_sub = input_image_color - temp_image_color
         color_sub = color_sub.astype(np.int8)
-        if np.linalg.norm(color_sub)/442 > 0.1: #黒と白のユークリッド距離が441.6
+        if np.linalg.norm(color_sub)/441.6 > 0.1: #黒と白のユークリッド距離が441.6
             continue
 
         #マッチングした点を象限で区別
@@ -89,7 +88,7 @@ def bf_match(original_image):
         points_pub.publish(points)
 
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示
-    after_image = cv2.drawMatches(after_image, kp1, temp_image, kp2, good_matches, None, flags=2)
+    #after_image = cv2.drawMatches(after_image, kp_input, temp_image, kp_temp, good_matches, None, flags=2)
     cv2.putText(after_image, "Drone Height = "+str(drone_height), (50, 1050), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0),thickness=3)
 
     return after_image
@@ -106,6 +105,7 @@ def calc_center(points):
     center = [x/len(points), y/len(points)]
     return center
 
+"""
 def tempmatch(original_image):
     methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
 
@@ -125,7 +125,9 @@ def tempmatch(original_image):
         cv2.rectangle(after_image, top_left, bottom_right, (255,0,0), 2)
 
     return after_image
+"""
 
+"""
 def labeling(image):
     gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     binary_image = cv2.threshold(gray_image, 200, 255, cv2.THRESH_BINARY)[1]
@@ -166,6 +168,7 @@ def labeling(image):
         #cv2.waitKey(1)
 
     return image
+"""
 
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
@@ -173,18 +176,20 @@ if __name__ == '__main__':
     points_pub = rospy.Publisher("marker_detect/points", Float32MultiArray, queue_size=1)
     bridge = CvBridge()
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/drone_video.mp4")
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/en.jpg") #第2引数が0でグレースケールで読み込むという意味
-    temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
-    temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
-    drone_height = 0.0
-
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/drone_video.mp4")
+
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
+    temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
+    temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
+
+    drone_height = 0.0
+
+    kp_temp, des_temp = detector.detectAndCompute(temp_gray_image, None)
     
     while(cap.isOpened()):
         ret, frame = cap.read()
-        #after_image = bf_match(frame)
-        #after_image = tempmatch(frame)
-        after_image = labeling(frame)
+        after_image = bf_match(frame)
         image_pub.publish(bridge.cv2_to_imgmsg(after_image, "bgr8"))
