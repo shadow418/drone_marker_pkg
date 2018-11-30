@@ -89,7 +89,7 @@ def bf_match(original_image):
 
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示
     #after_image = cv2.drawMatches(after_image, kp_input, temp_image, kp_temp, good_matches, None, flags=2)
-    cv2.putText(after_image, "Drone Height = "+str(drone_height), (50, 1050), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0),thickness=3)
+    #cv2.putText(after_image, "Drone Height = "+str(drone_height), (50, 1050), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0),thickness=3)
 
     return after_image
 
@@ -191,12 +191,12 @@ def color_labeling(image):
         return image
 
     max_idx = np.argmax(areas)
-    max_area = areas[max_idx]
+    #max_area = areas[max_idx]
     result = cv2.moments(contours[max_idx])
-    x = int(result["m10"]/result["m00"])
-    y = int(result["m01"]/result["m00"])
-
-    cv2.circle(image, (x, y), 5, (255,0,0), -1)
+    if result["m00"] != 0:
+        x = int(result["m10"]/result["m00"])
+        y = int(result["m01"]/result["m00"])
+        cv2.circle(image, (x, y), 5, (255,0,0), -1)
 
     return image
 
@@ -211,11 +211,10 @@ if __name__ == '__main__':
 
     cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/1.mp4")
 
+    #特徴点マッチングのときのみ使用
     temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp1_50.jpg") #第2引数が0でグレースケールで読み込むという意味
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
-
-    drone_height = 0.0
 
     kp_temp, des_temp = detector.detectAndCompute(temp_gray_image, None)
     
