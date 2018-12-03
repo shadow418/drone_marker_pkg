@@ -11,15 +11,18 @@ from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
 from cv_bridge import CvBridge, CvBridgeError
 
+"""
 def odom_callback(data):
     global drone_height
     drone_height = data.pose.pose.position.z
+"""
 
 def callback(data):
     cv_image = bridge.imgmsg_to_cv2(data, "bgr8")
-    cv_image = tempmatch(cv_image)
+    cv_image = drawKeyPoints(cv_image)
     image_pub.publish(bridge.cv2_to_imgmsg(cv_image, "bgr8"))
 
+"""
 def tempmatch(original_image):
     #methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
     methods = ['cv2.TM_CCOEFF_NORMED']
@@ -42,6 +45,13 @@ def tempmatch(original_image):
         cv2.rectangle(after_image, top_left, bottom_right, (255,0,0), 2)
 
     return after_image
+"""
+
+def drawKeyPoints(image):
+    gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    kp = detector.detect(gray_image)
+    result = cv2.drawKeypoints(image, kp, None)
+    return result
 
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
@@ -49,12 +59,13 @@ if __name__ == '__main__':
     points_pub = rospy.Publisher("marker_detect/points", Float32MultiArray, queue_size=1)
     
     bridge = CvBridge()
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker_temp20.jpg")
+    detector = cv2.AKAZE_create()
+    #temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/marker_temp20.jpg")
     #temp_image = cv2.imread(os.environ["HOME"]+"/bebop_ws/src/drone_marker_pkg/resource/marker_temp20.jpg")
-    temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
+    #temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     
-    drone_height = 0.0
-    rospy.Subscriber("bebop/odom", Odometry, odom_callback)
+    #drone_height = 0.0
+    #rospy.Subscriber("bebop/odom", Odometry, odom_callback)
 
     rospy.Subscriber("bebop/image_raw", Image, callback)
     rospy.Subscriber("usb_cam/image_raw", Image, callback)
