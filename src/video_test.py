@@ -170,6 +170,7 @@ def labeling(image):
     return image
 """
 
+"""
 def color_labeling(image):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -199,6 +200,7 @@ def color_labeling(image):
         cv2.circle(image, (x, y), 5, (255,0,0), -1)
 
     return image
+"""
 
 if __name__ == '__main__':
     rospy.init_node('marker_detect_node', anonymous=True)
