@@ -128,7 +128,7 @@ def bf_match(original_image):
     input_image_pts = []
     temp_image_pts = []
     for m in matches:
-        if m.distance < 50.0: #信頼性が高いかのチェック
+        if m.distance < 60.0: #信頼性が高いかのチェック
             good_matches.append(m)
             input_image_pts.append(map(int, kp_input[m.queryIdx].pt))
             temp_image_pts.append(map(int, kp_temp[m.trainIdx].pt))
@@ -213,10 +213,11 @@ if __name__ == '__main__':
     cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/mono1.mp4")
 
     #特徴点マッチングのときのみ使用
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp_mono_cut.jpg") #第2引数が0でグレースケールで読み込むという意味
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp_mono_cut.jpg")
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
 
+    #テンプレート画像の特徴点を抽出
     kp_temp, des_temp = detector.detectAndCompute(temp_gray_image, None)
     
     while(cap.isOpened()):
