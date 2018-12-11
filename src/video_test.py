@@ -210,10 +210,10 @@ if __name__ == '__main__':
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/video/mono1.mp4")
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/20181211/AW/1.mp4")
 
     #特徴点マッチングのときのみ使用
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/temp_mono_cut.jpg")
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/20181211/AW/temp_mono1.jpg")
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
 
