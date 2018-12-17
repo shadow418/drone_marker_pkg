@@ -18,11 +18,18 @@ def calc_center(points):
     return center
 
 if __name__ == '__main__':
+    cv2.namedWindow("a", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("b", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("c", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("d", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("e", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("f", cv2.WINDOW_NORMAL)
+
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
     input_image = cv2.imread("../save/input_image.jpg")
-    input_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
+    input_gray_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2GRAY)
 
     temp_image = cv2.imread("../save/temp_image.jpg")
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
@@ -31,8 +38,8 @@ if __name__ == '__main__':
     kp_input, des_input = detector.detectAndCompute(input_gray_image, None)
     kp_temp, des_temp = detector.detectAndCompute(temp_gray_image, None)
 
-    input_key_image = cv2.drawKeypoints(input_image,kp_input) #被探索画像の特徴点
-    temp_key_image = cv2.drawKeypoints(temp_image,kp_temp) #テンプレート画像の特徴点
+    input_key_image = cv2.drawKeypoints(input_image,kp_input,None) #被探索画像の特徴点
+    temp_key_image = cv2.drawKeypoints(temp_image,kp_temp,None) #テンプレート画像の特徴点
 
     matches = bf.match(des_input,des_temp)
     matches = sorted(matches, key = lambda x:x.distance)
