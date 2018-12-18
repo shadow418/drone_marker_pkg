@@ -12,7 +12,7 @@ def callback(msg):
     points_2d = np.array([[points[0],points[1]], [points[2],points[3]], [points[4],points[5]], [points[6],points[7]]])
     #points_2d = np.array([[1060.0,340.0], [660.0,340.0], [660.0,740.0], [1060.0,740.0]])
     ret, rvec, tvec = cv2.solvePnP(points_3d, points_2d, camera_mat,dist)
-    br.sendTransform((-tvec[0],-tvec[1],tvec[2]), tf.transformations.quaternion_from_euler(rvec[0], rvec[1], rvec[2]), rospy.Time.now(), "bebop2", "map")
+    br.sendTransform((-tvec[0],-tvec[1],tvec[2]), tf.transformations.quaternion_from_euler(-rvec[0], rvec[1], rvec[2]), rospy.Time.now(), "bebop2", "map")
     print tvec
     print rvec
     print "\n"
