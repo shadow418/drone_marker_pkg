@@ -20,10 +20,11 @@ if __name__ == '__main__':
         cv2.waitKey(1)
     """
     
-    temp_image = cv2.imread("../resource/20181211/C2/temp_mono2.jpg")
+    temp_image = cv2.imread("../resource/temp.jpg")
     gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     kp1 = detector.detect(gray_image)
     result = cv2.drawKeypoints(temp_image, kp1, None)
     cv2.namedWindow("test", cv2.WINDOW_NORMAL)
     cv2.imshow("test", result)
     cv2.waitKey(0)
+    cv2.destroyAllWindows()
