@@ -21,7 +21,7 @@ if __name__ == '__main__':
     rospy.init_node('calc_pose_node', anonymous=True)
     br = tf.TransformBroadcaster()
 
-    points_3d = np.array([[2.25,0,2.25],[-2.25,0,2.25],[-2.25,0,-2.25],[2.25,0,-2.25]], dtype = np.float32)
+    points_3d = np.array([[2.1,0,2.1],[-2.025,0,2.025],[-2.025,0,-2.025],[2.1,0,-2.1]], dtype = np.float32)
     camera_mat = np.array([[1215.7, 0, 952.3442],[0, 1227.4, 542.1231],[0.0, 0.0, 1.0]])
     dist = np.array([0.0535, -0.1581, 0.3051, 0, 0])
 

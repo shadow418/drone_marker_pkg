@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
-    <node pkg="tf" type="static_transform_publisher" name="marker_pos1" args="2.25 2.25 0 0 0 0 map marker1 10"></node>
-    <node pkg="tf" type="static_transform_publisher" name="marker_pos2" args="-2.25 2.25 0 0 0 0 map marker2 10"></node>
-    <node pkg="tf" type="static_transform_publisher" name="marker_pos3" args="-2.25 -2.25 0 0 0 0 map marker3 10"></node>
-    <node pkg="tf" type="static_transform_publisher" name="marker_pos4" args="2.25 -2.25 0 0 0 0 map marker4 10"></node>
+    <node pkg="tf" type="static_transform_publisher" name="marker_pos1" args="2.1 2.1 0 0 0 0 map marker1 10"></node>
+    <node pkg="tf" type="static_transform_publisher" name="marker_pos2" args="-2.025 2.025 0 0 0 0 map marker2 10"></node>
+    <node pkg="tf" type="static_transform_publisher" name="marker_pos3" args="-2.025 -2.025 0 0 0 0 map marker3 10"></node>
+    <node pkg="tf" type="static_transform_publisher" name="marker_pos4" args="2.1 -2.1 0 0 0 0 map marker4 10"></node>
 
     <node pkg="drone_marker_pkg" type="calc_pose_node.py" name="calc_pose_node" output="screen"></node>
 
