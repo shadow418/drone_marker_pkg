@@ -213,7 +213,7 @@ def bf_match(original_image):
         cv2.circle(after_image, (middle_left[0], middle_left[1]), 7, (0,255,255), -1)
 
         points = Float32MultiArray()
-        points.data = [upper_right[0], upper_right[1], upper_left[0], upper_left[1], lower_left[0], lower_left[1], lower_right[0], lower_right[1]]
+        points.data = [upper_right[0], upper_right[1], upper_left[0], upper_left[1], lower_left[0], lower_left[1], lower_right[0], lower_right[1], middle_left[0], middle_left[1], middle_right[0], middle_right[1]]
         points_pub.publish(points)
 
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示

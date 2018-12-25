@@ -21,7 +21,7 @@ if __name__ == '__main__':
     """
     
     #for num in range(6233,6252):
-    temp_image = cv2.imread("../resource/IMG_4912.JPG")
+    temp_image = cv2.imread("../resource/pattern1/temp5.jpg")
     gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     kp1 = detector.detect(gray_image)
     result = cv2.drawKeypoints(temp_image, kp1, None)
