@@ -20,11 +20,15 @@ if __name__ == '__main__':
         cv2.waitKey(1)
     """
     
-    temp_image = cv2.imread("../resource/temp.jpg")
+    #for num in range(6233,6252):
+    temp_image = cv2.imread("../resource/IMG_4912.JPG")
     gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     kp1 = detector.detect(gray_image)
     result = cv2.drawKeypoints(temp_image, kp1, None)
+    cv2.namedWindow("gray", cv2.WINDOW_NORMAL)
+    cv2.imshow("gray", gray_image)
     cv2.namedWindow("test", cv2.WINDOW_NORMAL)
     cv2.imshow("test", result)
+    #cv2.imwrite("../result/4.jpg",result)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
