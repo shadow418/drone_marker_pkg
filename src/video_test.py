@@ -138,6 +138,8 @@ def bf_match(original_image):
     second = []
     third = []
     forth = []
+    fifth = []
+    sixth = [] 
     for input_image_point, temp_image_point in zip(input_image_pts, temp_image_pts):
         #2点の色を比較して誤認識を排除
         input_image_color = after_image[input_image_point[1], input_image_point[0]]
@@ -147,7 +149,7 @@ def bf_match(original_image):
         if np.linalg.norm(color_sub)/441.6 > 0.1: #黒と白のユークリッド距離が441.6
             continue
 
-        #マッチングした点を象限で区別
+        #マッチングした点を象限で区別 4点版
         if temp_image_point[0] > temp_center[0] and temp_image_point[1] < temp_center[1]:
             first.append(input_image_point)
         if temp_image_point[0] < temp_center[0] and temp_image_point[1] < temp_center[1]:
@@ -156,6 +158,20 @@ def bf_match(original_image):
             third.append(input_image_point)
         if temp_image_point[0] > temp_center[0] and temp_image_point[1] > temp_center[1]:
             forth.append(input_image_point)
+
+        #マッチングした点を象限で区別 6点版
+        if temp_image_point[0] > temp_center[0] and temp_image_point[1] < temp_height/3:
+            first.append(input_image_point)
+        if temp_image_point[0] < temp_center[0] and temp_image_point[1] < temp_height/3:
+            second.append(input_image_point)
+        if temp_image_point[0] < temp_center[0] and temp_image_point[1] > 2*(temp_height/3):
+            third.append(input_image_point)
+        if temp_image_point[0] > temp_center[0] and temp_image_point[1] > 2*(temp_height/3):
+            forth.append(input_image_point)
+        if temp_image_point[0] < temp_center[0] and (temp_image_point[1] > temp_height/3 and temp_image_point[1] < 2*(temp_height/3)):
+            fifth.append(input_image_point)
+        if temp_image_point[0] > temp_center[0] and (temp_image_point[1] > temp_height/3 and temp_image_point[1] < 2*(temp_height/3)):
+            sixth.append(input_image_point)
 
     #象限によって色を分けて特徴点を表示
     for point in first:
@@ -166,12 +182,18 @@ def bf_match(original_image):
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (0,255,0), -1)
     for point in forth:
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (255,0,0), -1)
+    for point in fifth:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (255,255,0), -1)
+    for point in sixth:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (255,0,255), -1)
 
     #各象限の特徴点から代表点を見つける
     upper_right = calc_center(first)
     upper_left = calc_center(second)
     lower_left = calc_center(third)
     lower_right = calc_center(forth)
+    #middle_right = calc_center(fifth)
+    #middle_left = calc_center(sixth)
 
     #代表点があればその点に沿って線を描画
     if upper_right is not None and upper_left is not None and lower_left is not None and lower_right is not None:
@@ -216,6 +238,7 @@ if __name__ == '__main__':
     temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/20181211/AW/temp_mono1.jpg")
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
+    temp_height = temp_image.shape[0]/2
 
     #テンプレート画像の特徴点を抽出
     kp_temp, des_temp = detector.detectAndCompute(temp_gray_image, None)
