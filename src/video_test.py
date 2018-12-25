@@ -149,6 +149,7 @@ def bf_match(original_image):
         if np.linalg.norm(color_sub)/441.6 > 0.1: #黒と白のユークリッド距離が441.6
             continue
 
+        """
         #マッチングした点を象限で区別 4点版
         if temp_image_point[0] > temp_center[0] and temp_image_point[1] < temp_center[1]:
             first.append(input_image_point)
@@ -158,6 +159,7 @@ def bf_match(original_image):
             third.append(input_image_point)
         if temp_image_point[0] > temp_center[0] and temp_image_point[1] > temp_center[1]:
             forth.append(input_image_point)
+        """
 
         #マッチングした点を象限で区別 6点版
         if temp_image_point[0] > temp_center[0] and temp_image_point[1] < temp_height/3:
@@ -174,6 +176,7 @@ def bf_match(original_image):
             sixth.append(input_image_point)
 
     #象限によって色を分けて特徴点を表示
+    """
     for point in first:
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (0,0,0), -1)
     for point in second:
@@ -183,31 +186,38 @@ def bf_match(original_image):
     for point in forth:
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (255,0,0), -1)
     for point in fifth:
-        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (255,255,0), -1)
-    for point in sixth:
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (255,0,255), -1)
+    for point in sixth:
+        after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (0,255,255), -1)
+    """
 
     #各象限の特徴点から代表点を見つける
     upper_right = calc_center(first)
     upper_left = calc_center(second)
     lower_left = calc_center(third)
     lower_right = calc_center(forth)
-    #middle_right = calc_center(fifth)
-    #middle_left = calc_center(sixth)
+    middle_right = calc_center(fifth)
+    middle_left = calc_center(sixth)
 
     #代表点があればその点に沿って線を描画
-    if upper_right is not None and upper_left is not None and lower_left is not None and lower_right is not None:
-        cv2.line(after_image, (upper_right[0], upper_right[1]), (upper_left[0], upper_left[1]), (255,0,0), 5)
-        cv2.line(after_image, (upper_left[0], upper_left[1]), (lower_left[0], lower_left[1]), (255,0,0), 5)
-        cv2.line(after_image, (lower_left[0], lower_left[1]), (lower_right[0], lower_right[1]), (255,0,0), 5)
-        cv2.line(after_image, (lower_right[0], lower_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 5)
+    if upper_right is not None and upper_left is not None and lower_left is not None and lower_right is not None and middle_right is not None and middle_left is not None:
+        #cv2.line(after_image, (upper_right[0], upper_right[1]), (upper_left[0], upper_left[1]), (255,0,0), 5)
+        #cv2.line(after_image, (upper_left[0], upper_left[1]), (lower_left[0], lower_left[1]), (255,0,0), 5)
+        #cv2.line(after_image, (lower_left[0], lower_left[1]), (lower_right[0], lower_right[1]), (255,0,0), 5)
+        #cv2.line(after_image, (lower_right[0], lower_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 5)
+        cv2.circle(after_image, (upper_right[0], upper_right[1]), 7, (0,0,0), -1)
+        cv2.circle(after_image, (upper_left[0], upper_left[1]), 7, (0,0,255), -1)
+        cv2.circle(after_image, (lower_left[0], lower_left[1]), 7, (0,255,0), -1)
+        cv2.circle(after_image, (lower_right[0], lower_right[1]), 7, (255,0,0), -1)
+        cv2.circle(after_image, (middle_right[0], middle_right[1]), 7, (255,0,255), -1)
+        cv2.circle(after_image, (middle_left[0], middle_left[1]), 7, (0,255,255), -1)
 
         points = Float32MultiArray()
         points.data = [upper_right[0], upper_right[1], upper_left[0], upper_left[1], lower_left[0], lower_left[1], lower_right[0], lower_right[1]]
         points_pub.publish(points)
 
     #入力画像とテンプレート画像をつなげてマッチング結果と共に表示
-    #after_image = cv2.drawMatches(after_image, kp_input, temp_image, kp_temp, good_matches, None, flags=2)
+    after_image = cv2.drawMatches(after_image, kp_input, temp_image, kp_temp, good_matches, None, flags=2)
 
     return after_image
 
@@ -232,13 +242,13 @@ if __name__ == '__main__':
     detector = cv2.AKAZE_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
-    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/20181211/AW/1.mp4")
+    cap = cv2.VideoCapture(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/pattern1/1_1.mp4")
 
     #特徴点マッチングのときのみ使用
-    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/20181211/AW/temp_mono1.jpg")
+    temp_image = cv2.imread(os.environ["HOME"]+"/catkin_ws/src/drone_marker_pkg/resource/pattern1/temp.jpg")
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
-    temp_height = temp_image.shape[0]/2
+    temp_height = temp_image.shape[0]
 
     #テンプレート画像の特徴点を抽出
     kp_temp, des_temp = detector.detectAndCompute(temp_gray_image, None)
