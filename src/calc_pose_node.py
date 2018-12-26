@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import math
 import rospy
 import tf
 import cv2
@@ -17,7 +18,7 @@ def callback(msg):
     projMat = np.array([[R[0][0], R[0][1], R[0][2], 0.0], [R[1][0], R[1][1], R[1][2], 0.0], [R[2][0], R[2][1], R[2][2], 1.0]] , dtype = np.float32)
     eulerAngles = cv2.decomposeProjectionMatrix(projMat)[6]
     print eulerAngles
-    br.sendTransform((-tvec[0],-tvec[1],tvec[2]), tf.transformations.quaternion_from_euler(eulerAngles[0], 0, eulerAngles[2]), rospy.Time.now(), "bebop2", "map")
+    br.sendTransform((-tvec[0],-tvec[1],tvec[2]), tf.transformations.quaternion_from_euler(math.radians(-eulerAngles[0]), 0, math.radians(eulerAngles[2])), rospy.Time.now(), "bebop2", "map")
     
     #print tvec
     #print rvec
