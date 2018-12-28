@@ -34,6 +34,7 @@ if __name__ == '__main__':
     temp_image = cv2.imread("../save/temp_image.jpg")
     temp_gray_image = cv2.cvtColor(temp_image, cv2.COLOR_RGB2GRAY)
     temp_center = [temp_image.shape[1]/2, temp_image.shape[0]/2]
+    temp_height = temp_image.shape[0]
     
     kp_input, des_input = detector.detectAndCompute(input_gray_image, None)
     kp_temp, des_temp = detector.detectAndCompute(temp_gray_image, None)
@@ -77,6 +78,8 @@ if __name__ == '__main__':
     second = []
     third = []
     forth = []
+    fifth = []
+    sixth = []
     for input_image_point, temp_image_point in zip(input_image_pts, temp_image_pts):
         #2点の色を比較して誤認識を排除
         input_image_color = input_image[input_image_point[1], input_image_point[0]]
@@ -87,14 +90,18 @@ if __name__ == '__main__':
             continue
 
         #マッチングした点を象限で区別
-        if temp_image_point[0] > temp_center[0] and temp_image_point[1] < temp_center[1]:
+        if temp_image_point[0] > temp_center[0] and temp_image_point[1] < temp_height/3:
             first.append(input_image_point)
-        if temp_image_point[0] < temp_center[0] and temp_image_point[1] < temp_center[1]:
+        if temp_image_point[0] < temp_center[0] and temp_image_point[1] < temp_height/3:
             second.append(input_image_point)
-        if temp_image_point[0] < temp_center[0] and temp_image_point[1] > temp_center[1]:
+        if temp_image_point[0] < temp_center[0] and temp_image_point[1] > 2*(temp_height/3):
             third.append(input_image_point)
-        if temp_image_point[0] > temp_center[0] and temp_image_point[1] > temp_center[1]:
+        if temp_image_point[0] > temp_center[0] and temp_image_point[1] > 2*(temp_height/3):
             forth.append(input_image_point)
+        if temp_image_point[0] < temp_center[0] and (temp_image_point[1] > temp_height/3 and temp_image_point[1] < 2*(temp_height/3)):
+            fifth.append(input_image_point)
+        if temp_image_point[0] > temp_center[0] and (temp_image_point[1] > temp_height/3 and temp_image_point[1] < 2*(temp_height/3)):
+            sixth.append(input_image_point)
 
     #象限によって色を分けて特徴点を表示
     for point in first:
@@ -105,6 +112,10 @@ if __name__ == '__main__':
         color_point_image = cv2.circle(color_point_image, (int(point[0]), int(point[1])), 5, (0,255,0), -1)
     for point in forth:
         color_point_image = cv2.circle(color_point_image, (int(point[0]), int(point[1])), 5, (255,0,0), -1)
+    for point in fifth:
+        color_point_image = cv2.circle(color_point_image, (int(point[0]), int(point[1])), 5, (255,0,255), -1)
+    for point in sixth:
+        color_point_imagee = cv2.circle(color_point_image, (int(point[0]), int(point[1])), 5, (0,255,255), -1)
 
     cv2.imshow("e",color_point_image)
     cv2.imwrite("../save/e.jpg",color_point_image)
@@ -114,13 +125,17 @@ if __name__ == '__main__':
     upper_left = calc_center(second)
     lower_left = calc_center(third)
     lower_right = calc_center(forth)
+    middle_left = calc_center(fifth)
+    middle_right = calc_center(sixth)
 
     #代表点があればその点に沿って線を描画
-    if upper_right is not None and upper_left is not None and lower_left is not None and lower_right is not None:
+    if upper_right is not None and upper_left is not None and lower_left is not None and lower_right is not None and middle_right is not None and middle_left is not None:
         result3 = cv2.line(input_image, (upper_right[0], upper_right[1]), (upper_left[0], upper_left[1]), (255,0,0), 5)
-        result3 = cv2.line(result3, (upper_left[0], upper_left[1]), (lower_left[0], lower_left[1]), (255,0,0), 5)
+        result3 = cv2.line(result3, (upper_left[0], upper_left[1]), (middle_left[0], middle_left[1]), (255,0,0), 5)
+        result3 = cv2.line(result3, (middle_left[0], middle_left[1]), (lower_left[0], lower_left[1]), (255,0,0), 5)
         result3 = cv2.line(result3, (lower_left[0], lower_left[1]), (lower_right[0], lower_right[1]), (255,0,0), 5)
-        result3 = cv2.line(result3, (lower_right[0], lower_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 5)
+        result3 = cv2.line(result3, (lower_right[0], lower_right[1]), (middle_right[0], middle_right[1]), (255,0,0), 5)
+        result3 = cv2.line(result3, (middle_right[0], middle_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 5)
 
         cv2.imshow("f",result3)
         cv2.imwrite("../save/f.jpg",result3)
