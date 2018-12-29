@@ -176,7 +176,7 @@ def bf_match(original_image):
             sixth.append(input_image_point)
 
     #象限によって色を分けて特徴点を表示
-    """
+    
     for point in first:
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (0,0,0), -1)
     for point in second:
@@ -189,28 +189,32 @@ def bf_match(original_image):
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (255,0,255), -1)
     for point in sixth:
         after_image = cv2.circle(after_image, (int(point[0]), int(point[1])), 5, (0,255,255), -1)
-    """
+    
 
     #各象限の特徴点から代表点を見つける
     upper_right = calc_center(first)
     upper_left = calc_center(second)
     lower_left = calc_center(third)
     lower_right = calc_center(forth)
-    middle_right = calc_center(fifth)
-    middle_left = calc_center(sixth)
+    middle_left = calc_center(fifth)
+    middle_right = calc_center(sixth)
 
     #代表点があればその点に沿って線を描画
     if upper_right is not None and upper_left is not None and lower_left is not None and lower_right is not None and middle_right is not None and middle_left is not None:
-        #cv2.line(after_image, (upper_right[0], upper_right[1]), (upper_left[0], upper_left[1]), (255,0,0), 5)
-        #cv2.line(after_image, (upper_left[0], upper_left[1]), (lower_left[0], lower_left[1]), (255,0,0), 5)
-        #cv2.line(after_image, (lower_left[0], lower_left[1]), (lower_right[0], lower_right[1]), (255,0,0), 5)
-        #cv2.line(after_image, (lower_right[0], lower_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 5)
+        cv2.line(after_image, (upper_right[0], upper_right[1]), (upper_left[0], upper_left[1]), (255,0,0), 5)
+        cv2.line(after_image, (upper_left[0], upper_left[1]), (middle_left[0], middle_left[1]), (255,0,0), 5)
+        cv2.line(after_image, (middle_left[0], middle_left[1]), (lower_left[0], lower_left[1]), (255,0,0), 5)
+        cv2.line(after_image, (lower_left[0], lower_left[1]), (lower_right[0], lower_right[1]), (255,0,0), 5)
+        cv2.line(after_image, (lower_right[0], lower_right[1]), (middle_right[0], middle_right[1]), (255,0,0), 5)
+        cv2.line(after_image, (middle_right[0], middle_right[1]), (upper_right[0], upper_right[1]), (255,0,0), 5)
+        """
         cv2.circle(after_image, (upper_right[0], upper_right[1]), 7, (0,0,0), -1)
         cv2.circle(after_image, (upper_left[0], upper_left[1]), 7, (0,0,255), -1)
         cv2.circle(after_image, (lower_left[0], lower_left[1]), 7, (0,255,0), -1)
         cv2.circle(after_image, (lower_right[0], lower_right[1]), 7, (255,0,0), -1)
         cv2.circle(after_image, (middle_right[0], middle_right[1]), 7, (255,0,255), -1)
         cv2.circle(after_image, (middle_left[0], middle_left[1]), 7, (0,255,255), -1)
+        """
 
         points = Float32MultiArray()
         points.data = [upper_right[0], upper_right[1], upper_left[0], upper_left[1], lower_left[0], lower_left[1], lower_right[0], lower_right[1], middle_left[0], middle_left[1], middle_right[0], middle_right[1]]
